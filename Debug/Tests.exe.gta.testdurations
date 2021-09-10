@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GtaTestDurations xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Executable>C:\Users\Dominic\source\repos\MarvinsRobot\Debug\Tests.exe</Executable>
+  <TestDurations>
+    <TestDuration Test="CircularBuffer.Empty_is_all_default_init" Duration="0" />
+    <TestDuration Test="CircularBuffer.Filled" Duration="1" />
+    <TestDuration Test="CircularBuffer.Filled_init" Duration="1" />
+    <TestDuration Test="CircularBuffer.filled_init" Duration="1" />
+    <TestDuration Test="CircularBuffer.single_value" Duration="1" />
+    <TestDuration Test="CircularBuffer.last_value_is_at_the_back" Duration="1" />
+    <TestDuration Test="CircularBuffer.loops_around" Duration="1" />
+    <TestDuration Test="Resample.filled_init" Duration="1" />
+    <TestDuration Test="Resample.standard_use_case" Duration="1" />
+    <TestDuration Test="Filter.identity" Duration="1" />
+    <TestDuration Test="Filter.Boxcar" Duration="1" />
+    <TestDuration Test="PID_Controller.standard_use_case" Duration="1" />
+  </TestDurations>
+</GtaTestDurations>

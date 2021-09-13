@@ -29,12 +29,12 @@ Vec3 operator/(Vec3 v, double m) { return v /= m; }
 
 double norm(Vec3 v) { return std::hypot(v.x, v.y, v.z); }
 
-std::string to_string(Vec3 v) { return std::format("({:.3f}, {:.3f}, {:.3f})", v.x, v.y, v.z); }
+std::string to_string(Vec3 v) { return std::string("(") + std::to_string(v.x) + ", " + std::to_string(v.y) + ", " + std::to_string(v.z) + ")"; }
 
 struct Measurement
 {
 	Vec3 position;
-	std::chrono::time_point<std::chrono::system_clock> time_point;
+	std::chrono::time_point<std::chrono::high_resolution_clock> time_point;
 };
 
 Vec3 lerp(const Vec3& a, const Vec3& b, double t)
@@ -54,24 +54,24 @@ class Robot
 	Vec3 position{ 0,0,0 }, velocity{ 0,0,0 }, acceleration{ 0,0,0 };
 	mutable std::mt19937 gen{ std::random_device{}() };
 	mutable std::uniform_real_distribution<double> observation_noise{ -1.0, 1.0 };
-	std::jthread time_stepper;
+	std::thread time_stepper;
 
 	Vec3 ObservePosition() const { return position + Vec3{ observation_noise(gen), observation_noise(gen), observation_noise(gen) }; }
 public:
 	Robot()
 	{
-		time_stepper = std::jthread([&]() {
+		time_stepper = std::thread([&]() {
 			std::mt19937 gen{ std::random_device{}() };
 			std::uniform_real_distribution<double> move_noise{ 0.99, 1.01 };
-			std::chrono::time_point<std::chrono::system_clock> last_update = std::chrono::system_clock::now();
+			std::chrono::time_point<std::chrono::high_resolution_clock> last_update = std::chrono::high_resolution_clock::now();
 			while (true)
 			{
-				auto now = std::chrono::system_clock::now();
+				auto now = std::chrono::high_resolution_clock::now();
 				double time_step = (now - last_update).count();
 				last_update = now;
 				mtx.lock();
-				position += velocity * time_step * move_noise(gen) * 1e-5;
-				velocity += acceleration * time_step * move_noise(gen) * 1e-5;
+				position += velocity * time_step * move_noise(gen) * 5e-7;
+				velocity += acceleration * time_step * move_noise(gen) * 5e-7;
 				velocity *= 0.8;
 				mtx.unlock();
 				std::this_thread::sleep_for(1ms);
@@ -79,7 +79,7 @@ public:
 			});
 	}
 
-	Measurement Observe() const { std::scoped_lock lock(mtx); return { ObservePosition(), std::chrono::system_clock::now() }; }
+	Measurement Observe() const { std::scoped_lock lock(mtx); return { ObservePosition(), std::chrono::high_resolution_clock::now() }; }
 	void Accelerate(Vec3 dir) { std::scoped_lock lock(mtx); acceleration = dir; }
 };
 
@@ -140,7 +140,7 @@ int main()
 	PositionController pc{ 5e-3, 1e-7, 7e-3 };
 	PathExecutor pe;
 
-	std::jthread observer_thread = std::jthread([&]() { while (true) { buffer.add(robot.Observe()); std::this_thread::sleep_for(10ms); } });
+	std::thread observer_thread = std::thread([&]() { while (true) { buffer.add(robot.Observe()); std::this_thread::sleep_for(10ms); } });
 
 	// controller thread
 	std::this_thread::sleep_for(1s);
@@ -149,7 +149,7 @@ int main()
 		pe.Process(pc);
 		Vec3 command = pc.Process(buffer.get_snapshot());
 		robot.Accelerate(command);
-		std::cout << std::format("position estimate: {}, acceleration: {}\n", to_string(pc.PostionEstimate()), to_string(command));
+		std::cout << "position estimate: " << to_string(pc.PostionEstimate()) << ", acceleration: " << to_string(command) << '\n';
 		std::this_thread::sleep_for(100ms);
 	}
 	return 0;

@@ -77,7 +77,7 @@ TEST(Resample, standard_use_case)
 
 TEST(Filter, identity)
 {
-	FIR filter(std::vector{ 1.0 });
+	FIR filter(std::vector<double>{ 1.0 });
 	std::vector<double> input = { 0.0, 2.0, 1.0 };
 
 	std::vector<double> output = filter.Convolve(input);
@@ -107,4 +107,10 @@ TEST(PID_Controller, standard_use_case)
 	controller.SetMeasurement(0.0);
 
 	EXPECT_EQ(controller.Output(), 3.0);
+}
+
+int main(int argc, char **argv)
+{
+	::testing::InitGoogleTest(&argc, argv); 
+	return RUN_ALL_TESTS();
 }
